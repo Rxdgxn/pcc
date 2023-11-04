@@ -2,6 +2,8 @@
 
 use std::fs;
 
+const MAPPED_KEYWORDS: [&str; 6] = ["if ( ", "while ( ", ") {", "}", "&& ", "|| "];
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let mut output = String::new();
@@ -12,34 +14,60 @@ fn main() {
     output.push_str("int main() {\r\n");
 
     for line in input.split("\r\n") {
-        output.push('\t'); // From the main entry point
+        output.push_str("    "); // From the main entry point
 
         let mut line = String::from(line);
-        
-        let mut first = line.chars().nth(0).unwrap();
-        while first == '\t' || first == ' ' {
-            output.push(first);
-            line.remove(0);
 
-            if !line.is_empty() { first = line.chars().nth(0).unwrap(); }
-        }
+        if !line.trim().is_empty() {
+            let mut first = line.chars().nth(0).unwrap();
+            while first == '\t' || first == ' ' {
+                output.push(first);
+                line.remove(0);
 
-        line = String::from(line.trim_end());
-        
-        let words: Vec<&str> = line.split_whitespace().collect();
-        
-        // Note to self and others: words before "intreg" or "real" are ignored, which is technically ok
-        if let Some(i) = words.iter().position(|&word| word == "intreg" || word == "real") {
-            if words[i] == "intreg" { output.push_str("int "); }
-            else { output.push_str("double "); }
+                if !line.is_empty() { first = line.chars().nth(0).unwrap(); }
+            }
+
+            line = String::from(line.trim_end());
             
-            output.push_str(&words[i + 1..].join(" "));
+            let words: Vec<&str> = line.split_whitespace().collect();
+            
+            // Note to self and others: words before "intreg" or "real" are ignored, which is technically ok
+            if let Some(i) = words.iter().position(|&word| word == "intreg" || word == "real") {
+                if words[i] == "intreg" { output.push_str("int "); }
+                else { output.push_str("double "); }
+                
+                output.push_str(&words[i + 1..].join(" "));
+            }
+            else {
+                // TODO
+                for word in words {
+                    let mut push = String::from(match word {
+                        "daca" => "if ( ",
+                        "cat-timp" => "while ( ",
+                        "atunci" | "executa" => ") {",
+                        "sfarsit" => "}",
+                        "si" => "&& ",
+                        "sau" => "|| ",
+                        w => w
+                    });
+
+                    if !MAPPED_KEYWORDS.contains(&(&push as &str)) { push.push(' '); }
+
+                    output.push_str(&push);
+                };
+            }
+            
+            if !output.trim_end().ends_with('}') && !output.trim_end().ends_with('{') {
+                output.push(';');
+            }
         }
         else {
-            // TODO
+            let count: i32 = line.chars().map(|ch| if ch == ' ' { return 1; } else { return 0; }).sum();
+            for _ in 0 .. count { output.push(' '); }
         }
+
         
-        output.push_str(";\r\n");
+        output.push_str("\r\n");
     }
 
     output.push_str("\r\n\treturn 0;\r\n");

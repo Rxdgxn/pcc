@@ -4,8 +4,12 @@
 #include <math.h>
 
 int main() {
-	double pi, e;
-	int n;
+    double pi, e;
+    int n;
+    
+    while ( pi == 3.14 && e == 2.72 ) {
+        
+    }
 
 	return 0;
 }
