@@ -8,7 +8,8 @@ int main() {
     int n;
     
     while ( pi == 3.14 && e == 2.72 ) {
-        
+        e = e + 1;
+        pi = pi - 1;
     }
 
 	return 0;

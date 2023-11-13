@@ -2,7 +2,7 @@
 
 use std::fs;
 
-const MAPPED_KEYWORDS: [&str; 6] = ["if ( ", "while ( ", ") {", "}", "&& ", "|| "];
+const MAPPED_KEYWORDS: [&str; 8] = ["if ( ", "while ( ", ") {", "}", "&& ", "|| ", "= ", "} else {"];
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -31,23 +31,30 @@ fn main() {
             
             let words: Vec<&str> = line.split_whitespace().collect();
             
-            // Note to self and others: words before "intreg" or "real" are ignored, which is technically ok
+            // Note to self and others: words before "intreg", "real", "citeste", "scrie" are ignored, which is technically ok since they are supposed to be first in a line
             if let Some(i) = words.iter().position(|&word| word == "intreg" || word == "real") {
                 if words[i] == "intreg" { output.push_str("int "); }
                 else { output.push_str("double "); }
                 
                 output.push_str(&words[i + 1..].join(" "));
             }
+            else if let Some(i) = words.iter().position(|&word| word == "citeste" || word == "scrie") {
+                if words[i] == "citeste" { output.push_str("cin "); }
+                else { output.push_str("cout "); }
+                
+                todo!("Not implemented yet");
+            }
             else {
-                // TODO
                 for word in words {
                     let mut push = String::from(match word {
                         "daca" => "if ( ",
+                        "altfel" => "} else {",
                         "cat-timp" => "while ( ",
                         "atunci" | "executa" => ") {",
                         "sfarsit" => "}",
                         "si" => "&& ",
                         "sau" => "|| ",
+                        "<-" => "= ",
                         w => w
                     });
 
@@ -58,6 +65,7 @@ fn main() {
             }
             
             if !output.trim_end().ends_with('}') && !output.trim_end().ends_with('{') {
+                output = output.trim_end().to_string();
                 output.push(';');
             }
         }
